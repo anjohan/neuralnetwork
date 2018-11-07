@@ -26,4 +26,5 @@ module mod_cost_functions
 
             cost =  -y(1)*log(prediction(1)) - (1-y(1))*log(1-prediction(1))
         end function
+
 end module

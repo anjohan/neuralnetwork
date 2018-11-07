@@ -48,8 +48,7 @@ module mod_layers
             self%input(:) = input(:)
 
             if (allocated(self%f)) then
-                call self%f%eval(self%z, self%output)
-                call self%f%diff(self%output, self%f_diff)
+                call self%f%eval_diff(self%z, self%output, self%f_diff)
             else
                 self%output(:) = self%z(:)
                 self%f_diff(:) = 1
@@ -60,7 +59,7 @@ module mod_layers
             !! back propagation in non-output layer, calculate delta
 
             class(layer), intent(inout) :: self
-            class(layer), intent(in), optional :: next_layer
+            class(layer), intent(in) :: next_layer
 
             integer :: j
 
@@ -80,7 +79,7 @@ module mod_layers
             real(dp), intent(in) :: y(:)
 
             self%delta(:) = self%output(:) - y(:)
-            write(*,*) self%output(:), y, self%delta
+            !write(*,*) self%output(:), y, self%delta
             call self%update_grads()
 
         end subroutine

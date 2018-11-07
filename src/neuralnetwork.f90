@@ -71,9 +71,9 @@ module mod_neural_network
                 do j = 1, num_batches
                     call random_number(rnd)
                     do k = 1, batch_size
-                        idx = floor(idx*rnd(k)) + 1
-                        call self%feed_forward(X(:,k))
-                        call self%back_prop(Y(:,k))
+                        idx = floor(num_inputs*rnd(k)) + 1
+                        call self%feed_forward(X(:,idx))
+                        call self%back_prop(Y(:,idx))
                     end do
                     call self%update_weights(learning_rate/batch_size)
                 end do
@@ -94,7 +94,7 @@ module mod_neural_network
                 call self%feed_forward(X(:,j))
                 tmp_cost = tmp_cost + cost(self%layers(self%num_layers)%output, Y(:,j))
             end do
-            write(*,*) tmp_cost
+            !write(*,*) tmp_cost
         end function
 
         subroutine nn_update_weights(self, learning_rate)
