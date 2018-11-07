@@ -12,6 +12,7 @@ module mod_neural_network
     type :: neural_network
         class(layer), allocatable :: layers(:)
         integer :: num_layers
+        real(dp) :: lambda
 
         contains
             procedure :: predict => nn_predict, feed_forward, cost_func
@@ -21,7 +22,7 @@ module mod_neural_network
 
     contains
         function init_neural_network(num_inputs, nums_neurons, &
-                                     hidden_activation, output_activation) &
+                                     hidden_activation, output_activation, lambda) &
                  result(self)
             !! constructor of a neural network
 
@@ -31,10 +32,17 @@ module mod_neural_network
                 !! number of neurons in (= number of outputs from) each layer
             class(activation_function), intent(in) :: hidden_activation
             class(activation_function), intent(in), optional :: output_activation
+            real(dp), intent(in), optional :: lambda
 
             integer :: num_layers, l
             num_layers = size(nums_neurons)
             self%num_layers = num_layers
+
+            if (present(lambda)) then
+                self%lambda = lambda
+            else
+                self%lambda = 0
+            end if
 
             allocate(self%layers(num_layers))
             associate(layers => self%layers)
@@ -65,12 +73,12 @@ module mod_neural_network
             num_inputs = size(X,2)
             if (size(Y,2) /= num_inputs) error stop
             num_batches = num_inputs/batch_size
-            allocate(rnd(batch_size))
+            allocate(rnd(batch_size/num_images()))
 
             do i = 1, num_epochs
                 do j = 1, num_batches
                     call random_number(rnd)
-                    do k = 1, batch_size
+                    do k = 1, batch_size/num_images()
                         idx = floor(num_inputs*rnd(k)) + 1
                         call self%feed_forward(X(:,idx))
                         call self%back_prop(Y(:,idx))
@@ -104,7 +112,7 @@ module mod_neural_network
             integer :: l
 
             do l = 1, self%num_layers
-                call self%layers(l)%update_weights(learning_rate)
+                call self%layers(l)%update_weights(learning_rate, self%lambda)
             end do
         end subroutine
 

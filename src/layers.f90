@@ -97,11 +97,21 @@ module mod_layers
             end do
         end subroutine
 
-        subroutine update_weights(self, learning_rate)
+        subroutine update_weights(self, learning_rate, lambda)
             !! update weights using gradient averaged over batch
 
             class(layer), intent(inout) :: self
-            real(dp), intent(in) :: learning_rate
+            real(dp), intent(in) :: learning_rate, lambda
+
+            if (num_images() > 1) then
+                call co_sum(self%grad_W)
+                call co_sum(self%grad_b)
+            end if
+
+            if (lambda /= 0) then
+                self%grad_W(:,:) = self%grad_W(:,:) + lambda*self%W(:,:)
+                self%grad_b(:) = self%grad_b(:) + lambda*self%b(:)
+            end if
 
             self%W(:,:) = self%W(:,:) - learning_rate*self%grad_W(:,:)
             self%b(:) = self%b(:) - learning_rate*self%grad_b(:)
