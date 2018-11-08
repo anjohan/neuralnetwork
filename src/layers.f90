@@ -9,7 +9,7 @@ module mod_layers
         class(activation_function), allocatable :: f
 
         contains
-            procedure :: init
+            procedure :: init, reset_weights
             procedure :: predict, update_weights, zero_grads, update_grads
             generic :: back_prop => hidden_back_prop, output_back_prop
             procedure :: hidden_back_prop, output_back_prop
@@ -32,10 +32,8 @@ module mod_layers
                      self%delta, self%f_diff, &
                      mold=self%z)
 
-            call random_number(self%W)
-            self%W(:,:) = (self%W(:,:)-0.5d0) / sqrt(1.0d0*num_inputs)
-            self%b(:) = 0
 
+            call self%reset_weights()
             call self%zero_grads()
         end subroutine
 
@@ -119,6 +117,14 @@ module mod_layers
             call self%zero_grads()
         end subroutine
 
+        subroutine reset_weights(self)
+            class(layer), intent(inout) :: self
+
+            call random_number(self%W)
+            self%W(:,:) = (self%W(:,:)-0.5d0) / sqrt(1.0d0*size(self%W,2))
+            self%b(:) = 0
+        end subroutine
+
         subroutine zero_grads(self)
             !! set gradients to zero before next batch
 
@@ -127,4 +133,5 @@ module mod_layers
             self%grad_W(:,:) = 0
             self%grad_b(:) = 0
         end subroutine
+
 end module

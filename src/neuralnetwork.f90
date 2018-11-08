@@ -18,6 +18,7 @@ module mod_neural_network
             procedure :: predict => nn_predict, feed_forward, cost_func
             procedure :: back_prop => nn_back_prop
             procedure :: train, update_weights => nn_update_weights
+            procedure :: reset_weights => nn_reset_weights
     end type
 
     contains
@@ -151,5 +152,14 @@ module mod_neural_network
                     call layers(l)%back_prop(layers(l+1))
                 end do
             end associate
+        end subroutine
+
+        subroutine nn_reset_weights(self)
+            class(neural_network), intent(inout) :: self
+
+            integer :: l
+            do l = 1, self%num_layers
+                call self%layers(l)%reset_weights()
+            end do
         end subroutine
 end module

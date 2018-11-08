@@ -11,11 +11,11 @@ module mod_cost_functions
     end interface
 
     contains
-        function l2norm(prediction, y) result(cost)
+        function mean_squared_error(prediction, y) result(cost)
             real(dp) :: cost
             real(dp), intent(in) :: prediction(:), y(:)
 
-            cost = 0.5*norm2(prediction-y)
+            cost = 0.5*sum((prediction-y)**2)/size(y)
         end function
 
         function binary_crossentropy(prediction, y) result(cost)
