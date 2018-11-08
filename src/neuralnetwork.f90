@@ -68,18 +68,24 @@ module mod_neural_network
             real(dp), intent(in) :: X(:,:), Y(:,:), learning_rate
             integer, intent(in) :: num_epochs, batch_size
 
-            integer :: num_inputs, num_batches, i, j, k, idx
+            integer :: num_inputs, num_batches, i, j, k, idx, local_batch_size
             real(dp), allocatable :: rnd(:)
 
             num_inputs = size(X,2)
             if (size(Y,2) /= num_inputs) error stop
             num_batches = num_inputs/batch_size
-            allocate(rnd(batch_size/num_images()))
+
+            local_batch_size = batch_size/num_images()
+            if (this_image() <= mod(batch_size, num_images())) then
+                local_batch_size = local_batch_size + 1
+            end if
+
+            allocate(rnd(local_batch_size))
 
             do i = 1, num_epochs
                 do j = 1, num_batches
                     call random_number(rnd)
-                    do k = 1, batch_size/num_images()
+                    do k = 1, local_batch_size
                         idx = floor(num_inputs*rnd(k)) + 1
                         call self%feed_forward(X(:,idx))
                         call self%back_prop(Y(:,idx))

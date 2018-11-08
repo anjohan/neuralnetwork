@@ -24,7 +24,8 @@ module mod_layers
             ! no f => regression layer
             if (present(f)) self%f = f
 
-            allocate(self%W(num_outputs, num_inputs), self%z(num_outputs))
+            allocate(self%W(num_outputs, num_inputs))
+            allocate(self%z(num_outputs))
             allocate(self%input(num_inputs))
 
             allocate(self%grad_W, mold=self%W)
@@ -120,8 +121,12 @@ module mod_layers
         subroutine reset_weights(self)
             class(layer), intent(inout) :: self
 
-            call random_number(self%W)
+            if (this_image() == 1) call random_number(self%W)
+            if (this_image() /= 1) self%W(:,:) = 0
+            call co_sum(self%W)
+
             self%W(:,:) = (self%W(:,:)-0.5d0) / sqrt(1.0d0*size(self%W,2))
+            self%W(:,:) = self%W(:,:)
             self%b(:) = 0
         end subroutine
 
