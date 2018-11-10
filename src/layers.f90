@@ -4,8 +4,8 @@ module mod_layers
     implicit none
 
     type :: layer
-        real(dp), allocatable :: W(:,:), b(:), delta(:), output(:), &
-                                 grad_W(:,:), grad_b(:), z(:), f_diff(:), input(:)
+        real(dp), allocatable :: W(:,:)[:], b(:), delta(:), output(:), &
+                                 grad_W(:,:)[:], grad_b(:)[:], z(:), f_diff(:), input(:)
         class(activation_function), allocatable :: f
 
         contains
@@ -24,12 +24,13 @@ module mod_layers
             ! no f => regression layer
             if (present(f)) self%f = f
 
-            allocate(self%W(num_outputs, num_inputs))
+            allocate(self%W(num_outputs, num_inputs)[*])
             allocate(self%z(num_outputs))
             allocate(self%input(num_inputs))
 
-            allocate(self%grad_W, mold=self%W)
-            allocate(self%b, self%grad_b, self%output, &
+            allocate(self%grad_W(num_outputs, num_inputs)[*])
+            allocate(self%grad_b(num_outputs)[*])
+            allocate(self%b, self%output, &
                      self%delta, self%f_diff, &
                      mold=self%z)
 
@@ -101,19 +102,25 @@ module mod_layers
 
             class(layer), intent(inout) :: self
             real(dp), intent(in) :: learning_rate, lambda
+            integer :: i
 
-            if (num_images() > 1) then
-                call co_sum(self%grad_W)
-                call co_sum(self%grad_b)
-            end if
+!            if (num_images() > 1) then
+!                call co_sum(self%grad_W)
+!                call co_sum(self%grad_b)
+!            end if
+
 
             if (lambda /= 0) then
                 self%grad_W(:,:) = self%grad_W(:,:) + lambda*self%W(:,:)
                 self%grad_b(:) = self%grad_b(:) + lambda*self%b(:)
             end if
+            sync all
 
-            self%W(:,:) = self%W(:,:) - learning_rate*self%grad_W(:,:)
-            self%b(:) = self%b(:) - learning_rate*self%grad_b(:)
+            do i = 1, num_images()
+                self%W(:,:) = self%W(:,:) - learning_rate*self%grad_W(:,:)[i]
+                self%b(:) = self%b(:) - learning_rate*self%grad_b(:)[i]
+            end do
+            sync all
 
             call self%zero_grads()
         end subroutine
@@ -123,10 +130,12 @@ module mod_layers
 
             if (this_image() == 1) call random_number(self%W)
             if (this_image() /= 1) self%W(:,:) = 0
-            call co_sum(self%W)
+            sync all
+            self%W(:,:) = self%W(:,:)[1]
+            !call co_sum(self%W)
 
             self%W(:,:) = (self%W(:,:)-0.5d0) / sqrt(1.0d0*size(self%W,2))
-            self%W(:,:) = self%W(:,:)
+            !self%W(:,:) = self%W(:,:)
             self%b(:) = 0
         end subroutine
 
