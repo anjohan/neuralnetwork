@@ -64,6 +64,8 @@ module mod_neural_network
         end function
 
         subroutine train(self, X, Y, learning_rate, num_epochs, batch_size)
+            !! train the neural network on the given data set (X, Y)
+
             class(neural_network), intent(inout) :: self
             real(dp), intent(in) :: X(:,:), Y(:,:), learning_rate
             integer, intent(in) :: num_epochs, batch_size
@@ -96,6 +98,10 @@ module mod_neural_network
         end subroutine
 
         function cost_func(self, X, Y, cost) result(tmp_cost)
+            !! calculate the cost function on the given data set.
+            !! the cost function must be additive and fulfill the
+            !! cost_function interface.
+
             class(neural_network), intent(inout) :: self
             real(dp), intent(in) :: X(:,:), Y(:,:)
             procedure(cost_function) :: cost
@@ -113,6 +119,8 @@ module mod_neural_network
         end function
 
         subroutine nn_update_weights(self, learning_rate)
+            !! update weights with gradient calculated from training
+
             class(neural_network), intent(inout) :: self
             real(dp), intent(in) :: learning_rate
 
@@ -124,6 +132,8 @@ module mod_neural_network
         end subroutine
 
         subroutine nn_predict(self, input, output)
+            !! predict output
+
             class(neural_network), intent(inout) :: self
             real(dp), intent(in) :: input(:)
             real(dp), intent(out) :: output(:)
@@ -133,6 +143,8 @@ module mod_neural_network
         end subroutine
 
         subroutine feed_forward(self, input)
+            !! feed forward algorithm
+
             class(neural_network), intent(inout) :: self
             real(dp), intent(in) :: input(:)
 
@@ -147,6 +159,9 @@ module mod_neural_network
         end subroutine
 
         subroutine nn_back_prop(self, output)
+            !! back propagation algorithm for calculating gradients
+            !! of the cost function with respect to weights and biases
+
             class(neural_network), intent(inout) :: self
             real(dp), intent(in) :: output(:)
 
@@ -161,6 +176,8 @@ module mod_neural_network
         end subroutine
 
         subroutine nn_reset_weights(self)
+            !! reset the weights (for reuse of the neural network)
+
             class(neural_network), intent(inout) :: self
 
             integer :: l

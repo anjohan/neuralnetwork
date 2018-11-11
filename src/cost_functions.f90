@@ -11,6 +11,7 @@ module mod_cost_functions
     end interface
 
     contains
+
         function mean_squared_error(prediction, y) result(cost)
             real(dp) :: cost
             real(dp), intent(in) :: prediction(:), y(:)
@@ -18,13 +19,17 @@ module mod_cost_functions
             cost = 0.5*sum((prediction-y)**2)/size(y)
         end function
 
-        function binary_crossentropy(prediction, y) result(cost)
+        function crossentropy(prediction, y) result(cost)
             real(dp) :: cost
             real(dp), intent(in) :: prediction(:), y(:)
 
-            if(size(prediction) /= 1 .or. size(y) /= 1) error stop
+            if (size(y) /= size(prediction)) error stop
 
-            cost =  -y(1)*log(prediction(1)) - (1-y(1))*log(1-prediction(1))
+            if (size(y) == 1) then
+                cost =  -y(1)*log(prediction(1)) - (1-y(1))*log(1-prediction(1))
+            else
+                cost = -sum(y(:) * log(prediction(:)))
+            end if
         end function
 
 end module

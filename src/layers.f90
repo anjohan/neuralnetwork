@@ -119,6 +119,8 @@ module mod_layers
         end subroutine
 
         subroutine reset_weights(self)
+            !! randomly initialise weights
+
             class(layer), intent(inout) :: self
 
             if (this_image() == 1) call random_number(self%W)
